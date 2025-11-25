@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: anand-store-backend
+    runtime: node
+    region: singapore
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_gGvZS43bTizF@ep-dawn-silence-a16jwbmx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        value: anand_store_super_secret_jwt_key_2024
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: PORT
+        value: 5001
