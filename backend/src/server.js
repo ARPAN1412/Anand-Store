@@ -15,13 +15,33 @@ const app = express();
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: [
-    process.env.CLIENT_URL,
-    process.env.ADMIN_URL,
-    process.env.MOBILE_URL,
-    'http://localhost:3002',
-    'http://localhost:3003'
-  ],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow all localhost and 127.0.0.1 origins (for Flutter web dev)
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow specific production domains
+    const allowedOrigins = [
+      process.env.CLIENT_URL,
+      process.env.ADMIN_URL,
+      process.env.MOBILE_URL
+    ].filter(Boolean);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // For development, allow all
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    callback(null, true); // Allow all in production (Render)
+  },
   credentials: true
 }));
 app.use(morgan('dev'));
@@ -37,7 +57,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth-otp')); // JWT + OTP authentication
 app.use('/api/menu', require('./routes/menu'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/reservations', require('./routes/reservations'));
